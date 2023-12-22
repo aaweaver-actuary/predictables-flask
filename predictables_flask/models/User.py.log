@@ -1,0 +1,5 @@
+2023-12-21 14:07:15,162 - predictables_flask.logger - ERROR - Error retrieving user `admin`: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.

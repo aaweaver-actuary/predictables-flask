@@ -1,34 +1,39 @@
-import jwt
+from typing import Tuple
+
 from flask import Request, current_app, jsonify
 from werkzeug.security import check_password_hash
 
 from predictables_flask.models import User
 
 
-def login(request: Request):
+def login(request: Request) -> Tuple[dict, int]:
     """
-    POST to authenticate users. Returns a token if successful.
+    Authenticate users based on the provided credentials and return a JWT token if successful.
 
     Parameters
     ----------
     request : Request
-        The request object from the Flask route. Must be a POST request of the form:
-        {
-            "username": "username",
-            "password": "password"
-        }
+        The Flask request object containing JSON with 'username' and 'password' keys.
 
     Returns
     -------
-    JSON
-        A JSON object with a token field if successful. Otherwise, returns a JSON object with an error field.
+    Tuple[dict, int]
+        A tuple containing a JSON response and a status code.
     """
-    username = request.json.get("username")
-    password = request.json.get("password")
-    user = User.query.filter_by(username=username).first()
-    if user and check_password_hash(user.password, password):
-        # Generate token and return it
-        return jsonify({"token": generate_token(user)}), 200
+    # Extract credentials from request
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    # Authenticate the user
+    user = User.get_by_username(username)
+    if user and check_password_hash(user.password_hash, password):
+        # Assuming generate_token is a function that creates a JWT token for the user
+        token = generate_token(user.id)
+        return jsonify({"token": token}), 200
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
